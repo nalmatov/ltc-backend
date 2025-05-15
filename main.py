@@ -104,6 +104,7 @@ async def add_custom_exchange(exchange_data: CustomExchangeInput):
     
     exchange_id = exchange_data.exchange.lower()
     
+    print(exchange_data)
     # Если указан процент, рассчитываем цену автоматически
     price = None
     if exchange_data.price_percent is not None:

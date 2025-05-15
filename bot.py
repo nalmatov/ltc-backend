@@ -10,8 +10,8 @@ import json
 import asyncio
 
 # Конфигурация
-TELEGRAM_TOKEN = "8012582540:AAHAY-3RAQXAnO1jck3EUpypdEQyK2vGG80"  # Замените на ваш токен
-API_BASE_URL = "http://185.43.222.207/api/"  # URL вашего FastAPI сервера
+TELEGRAM_TOKEN = "7744323539:AAFERihKZHLZtnZx4xT0cfie0eCJL7OBFE4"  # Замените на ваш токен
+API_BASE_URL = "https://ltc-rates.com/api"  # URL вашего FastAPI сервера
 ADMIN_IDS = [1726076180, 6463740595, 1038789342]  # Замените на ваш Telegram ID
 
 # Определение состояний FSM (Finite State Machine)
@@ -24,6 +24,7 @@ class ExchangeForm(StatesGroup):
     ADD_EXCHANGE_DEPTH_MINUS = State()
     ADD_EXCHANGE_VOLUME_PERCENTAGE = State()
     ADD_EXCHANGE_ICON = State()
+    ADD_EXCHANGE_URL = State()
     UPDATE_EXCHANGE_CHOOSE = State()
     UPDATE_EXCHANGE_FIELD = State()
     UPDATE_EXCHANGE_VALUE = State()
@@ -35,7 +36,8 @@ UPDATE_FIELDS = {
     "plusTwoPercentDepth": "Глубина +2%",
     "minusTwoPercentDepth": "Глубина -2%",
     "volumePercentage": "Процент объема",
-    "icon": "Иконка"
+    "icon": "Иконка",
+    "url": "Ссылка на биржу",
 }
 
 # Временное хранилище данных для добавления биржи
@@ -207,9 +209,21 @@ async def add_exchange_volume_percentage(message: types.Message, state: FSMConte
 @dp.message(ExchangeForm.ADD_EXCHANGE_ICON)
 async def add_exchange_icon(message: types.Message, state: FSMContext) -> None:
     """Обработка URL иконки"""
-    icon_url = message.text
-    if icon_url != '-':
-        exchange_data['icon'] = icon_url
+    try:
+        icon_url = message.text
+        if icon_url != '-':
+            exchange_data['icon'] = icon_url
+        await message.reply("Введите URL биржи!")
+        await state.set_state(ExchangeForm.ADD_EXCHANGE_URL)
+    except ValueError:
+        await message.reply("⚠️ Ошибка! введите URL")
+
+@dp.message(ExchangeForm.ADD_EXCHANGE_URL)
+async def add_exchange_url(message: types.Message, state: FSMContext) -> None:
+    """Обработка URL биржи"""
+    url = message.text
+    if url != '-':
+        exchange_data['url'] = url
     await finish_adding(message, state)
 
 async def finish_adding(message: types.Message, state: FSMContext) -> None:
