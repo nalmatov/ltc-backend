@@ -8,6 +8,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import requests
 import json
 import asyncio
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Конфигурация
 TELEGRAM_TOKEN = os.getenv("TG_TOKEN")  # Замените на ваш токен

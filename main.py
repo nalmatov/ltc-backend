@@ -2,12 +2,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Union
-from dotenv import load_dotenv
 import requests, math, os, json, redis, time
 from datetime import datetime
 from enum import Enum
-
-load_dotenv()
 
 # Инициализация приложения FastAPI
 app = FastAPI(
