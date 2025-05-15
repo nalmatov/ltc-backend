@@ -10,8 +10,8 @@ import json
 import asyncio
 
 # Конфигурация
-TELEGRAM_TOKEN = "7744323539:AAFERihKZHLZtnZx4xT0cfie0eCJL7OBFE4"  # Замените на ваш токен
-API_BASE_URL = "https://ltc-rates.com/api"  # URL вашего FastAPI сервера
+TELEGRAM_TOKEN = os.getenv("TG_TOKEN")  # Замените на ваш токен
+API_BASE_URL = os.getenv("API_URL")  # URL вашего FastAPI сервера
 ADMIN_IDS = [1726076180, 6463740595, 1038789342]  # Замените на ваш Telegram ID
 
 # Определение состояний FSM (Finite State Machine)
