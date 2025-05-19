@@ -5,6 +5,7 @@ from typing import List, Optional, Dict, Union
 import requests, math, os, json, redis, time
 from datetime import datetime
 from enum import Enum
+from bot import send_feedback_to_group
 
 # Инициализация приложения FastAPI
 app = FastAPI(
@@ -89,6 +90,30 @@ class CustomExchangeUpdateInput(BaseModel):
     volumePercentage: Optional[float] = None
     icon: Optional[str] = None
     url: Optional[str] = None  # Добавляем поле для URL биржи
+    
+class FeedbackInput(BaseModel):
+    name: str
+    email: str # Можно сделать Optional[str] = None, если email не всегда обязателен
+    describe: str
+
+@app.post("/api/feedback", tags=["feedback"])
+async def submit_feedback(feedback_data: FeedbackInput = Body(...)):
+    """
+    Принимает данные обратной связи (имя, email, описание) 
+    и отправляет их в Telegram группу через бота.
+    """
+    try:
+        await send_feedback_to_group(
+            name=feedback_data.name,
+            email=feedback_data.email,
+            describe=feedback_data.describe
+        )
+        return {"status": "success", "message": "Фидбек успешно отправлен."}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error processing feedback submission: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при отправке фидбека. Пожалуйста, попробуйте позже.")
 
 @app.post("/api/custom-exchanges", tags=["exchanges"])
 async def add_custom_exchange(exchange_data: CustomExchangeInput):
@@ -746,30 +771,17 @@ async def get_binance_ltc_price() -> float:
 # Корневой маршрут с информацией об API
 @app.get("/", tags=["info"])
 async def root():
-    """
-    Возвращает общую информацию об API
-    """
     return {
         "name": "LTC Exchange API",
         "version": "1.0.0",
-        "description": "API для получения данных о биржах, торгующих Litecoin (LTC)",
+        "description": "API для получения данных о биржах, торгующих Litecoin (LTC), и отправки обратной связи.",
         "endpoints": [
-            {
-                "path": "/api/ltc-exchanges",
-                "description": "Получить данные о биржах LTC/USDT через CoinGecko"
-            },
-            {
-                "path": "/api/ltc-exchanges-cmc",
-                "description": "Получить данные о биржах LTC/USDT через CoinMarketCap"
-            },
-            {
-                "path": "/api/ltc-depth/{exchange}",
-                "description": "Получить данные о глубине рынка для конкретной биржи"
-            },
-            {
-                "path": "/api/ltc-price-history",
-                "description": "Получить историю цены Litecoin за указанный период для построения графика"
-            }
+            {"path": "/api/ltc-exchanges", "description": "Получить данные о биржах LTC/USDT (CoinGecko + Custom)"},
+            {"path": "/api/ltc-exchanges-cmc", "description": "Получить данные о биржах LTC/USDT (CoinMarketCap)"},
+            {"path": "/api/ltc-depth/{exchange}", "description": "Получить данные о глубине рынка для биржи"},
+            {"path": "/api/ltc-price-history", "description": "Получить историю цены Litecoin для графика"},
+            {"path": "/api/custom-exchanges", "description": "Управление пользовательскими биржами (GET, POST, PATCH, DELETE)"},
+            {"path": "/api/feedback", "description": "Отправить обратную связь"} # Добавили информацию о новом эндпоинте
         ]
     }
 

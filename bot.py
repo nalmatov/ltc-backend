@@ -16,6 +16,7 @@ load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TG_TOKEN")  # Замените на ваш токен
 API_BASE_URL = os.getenv("API_URL")  # URL вашего FastAPI сервера
 ADMIN_IDS = [1726076180, 6463740595, 1038789342]  # Замените на ваш Telegram ID
+FEEDBACK_GROUP_ID = os.getenv("GROUP_ID")
 
 # Определение состояний FSM (Finite State Machine)
 class ExchangeForm(StatesGroup):
@@ -77,6 +78,32 @@ async def cmd_start(message: types.Message, state: FSMContext) -> None:
     reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     await message.reply("👋 Добро пожаловать в панель управления кастомными биржами!\n\nВыберите действие:", reply_markup=reply_markup)
     await state.set_state(ExchangeForm.CHOOSE_ACTION)
+
+async def send_feedback_to_group(name: str, email: str, describe: str) -> None:
+    """
+    Формирует и отправляет сообщение с фидбеком в заданную группу.
+    """
+    if not FEEDBACK_GROUP_ID or FEEDBACK_GROUP_ID == -1001234567890: # Added check for placeholder
+        print("FEEDBACK_GROUP_ID не установлен или используется плейсхолдер. Сообщение не будет отправлено.")
+        return
+
+    message_text = (
+        f"📢 <b>Новый фидбек!</b>\n\n"
+        f"👤 <b>Имя:</b> {name}\n"
+        f"📧 <b>Email:</b> {email}\n"
+        f"📝 <b>Описание:</b>\n{describe}"
+    )
+
+    try:
+        await bot.send_message(
+            chat_id=FEEDBACK_GROUP_ID,
+            text=message_text,
+            parse_mode="HTML" # Используем HTML для форматирования
+        )
+        print(f"Сообщение с фидбеком успешно отправлено в группу {FEEDBACK_GROUP_ID}")
+    except Exception as e:
+        # Здесь можно добавить более специфическую обработку ошибок Telegram API
+        print(f"Ошибка при отправке сообщения в группу {FEEDBACK_GROUP_ID}: {e}")
 
 # Обработчик для получения списка бирж
 @dp.callback_query(F.data == "list")
